@@ -48,7 +48,8 @@ button:focus-visible,label.btn:focus-within,input:focus-visible{outline:3px soli
   <div class="bar">
     <button id="back">곡 고르기</button>
     <input id="name" placeholder="이름 (사진용)" maxlength="8" aria-label="사진에 넣을 이름">
-    <label class="btn">음악 넣기<input id="music" type="file" accept="audio/*" hidden></label>
+    <button id="mute">음악 끄기</button>
+    <label class="btn">다른 음악<input id="music" type="file" accept="audio/*" hidden></label>
     <button id="snap">사진 찍기</button>
     <button id="full">전체화면</button>
   </div>
@@ -208,13 +209,14 @@ function choose(i){
   mode=i;const m=M[i];$('tt').textContent=m.t;$('ts').textContent=m.by+' · '+m.d;
   $('tint').style.background=m.tint;$('pick').style.display='none';
   lion.x=W*.75;lion.y=H*.72;rings=[];confetti=[];bubbles=[];if(i===1)initFish();if(i===2){initBees();trail=[]}
-  startCam();if(songs[i]){bgm.src=songs[i];bgm.play().catch(()=>{})}else bgm.pause();
+  startCam();if(songs[i]){bgm.src=songs[i];bgm.currentTime=0;bgm.play().catch(()=>{const m=$('msg');m.innerHTML='<p><b>음악이 재생되지 않았어요</b></p><p style="font-size:14px;opacity:.85;margin-top:6px">music 폴더가 이 파일 옆에 있는지 확인해 주세요.</p><button style="margin-top:12px">확인</button>';m.style.display='block';m.querySelector('button').onclick=()=>m.style.display='none'})}else bgm.pause();
 }
 document.querySelectorAll('.card').forEach(c=>c.onclick=()=>choose(+c.dataset.m));
 $('back').onclick=()=>{$('pick').style.display='flex';mode=-1;bgm.pause()};
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='1')choose(0);if(e.key==='2')choose(1);if(e.key==='3')choose(2)});
-const bgm=$('bgm'),songs=[null,null,null];
+const bgm=$('bgm'),songs=['music/lion.mp3','music/aquarium.mp3','music/bee.mp3'];
 $('music').onchange=e=>{const f=e.target.files[0];if(f&&mode>=0){songs[mode]=URL.createObjectURL(f);bgm.src=songs[mode];bgm.play().catch(()=>{})}};
+$('mute').onclick=()=>{if(bgm.paused){bgm.play().catch(()=>{});$('mute').textContent='음악 끄기'}else{bgm.pause();$('mute').textContent='음악 켜기'}};
 $('full').onclick=()=>{const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.();p?.catch?.(()=>{})};
 
 $('snap').onclick=()=>{
