@@ -113,24 +113,27 @@ function readMotion(){
 }
 
 /* ---------- 사자 ---------- */
-let lion={x:0,y:0,face:1,roar:0,walk:0},rings=[],lastRoar=0;
+let nextAutoRoar=4000;let lion={x:0,y:0,face:1,roar:0,walk:0},rings=[],lastRoar=0;
 function drawLion(t){
-  const side=cx>.5?-1:1;const tx=Math.min(Math.max((cx+side*.24)*W,W*.15),W*.85),ty=H*.66;
+  const follow=camOn&&amt>.004;let tx;
+  if(follow){const side=cx>.5?-1:1;tx=Math.min(Math.max((cx+side*.24)*W,W*.15),W*.85)}
+  else tx=W*(.5+.36*Math.sin(t/5200)); // 아무도 없으면 무대를 좌우로 행진
+  const ty=H*.66;
   const dx=tx-lion.x;lion.x+=dx*.05;lion.y+=(ty-lion.y)*.1;
-  if(Math.abs(dx)>4){lion.face=dx>0?1:-1;lion.walk+=.22}
+  if(Math.abs(dx)>1.5){lion.face=dx>0?1:-1;lion.walk+=.22}
   const im=lion.roar>.2?PIC.lion_roar:PIC.lion_walk;if(!ok(im))return;
   const lw=Math.min(W*.42,H*.62*im.naturalWidth/im.naturalHeight),lh=lw*im.naturalHeight/im.naturalWidth;
   const bob=Math.abs(Math.sin(lion.walk))*lh*.03,r=lion.roar>0?1+lion.roar*.08:1;
   g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(lion.x,lion.y+lh*.48,lw*.42,lh*.06,0,0,6.28);g.fill();
   g.save();g.translate(lion.x,lion.y-bob);g.scale(lion.face*r,r);g.rotate(Math.sin(lion.walk)*.02);
   g.drawImage(im,-lw/2,-lh/2,lw,lh);g.restore();
-  if(camOn&&upper>.02&&t-lastRoar>2200){lastRoar=t;lion.roar=1;for(let k=0;k<3;k++)rings.push({r:20+k*30,a:1})}
+  if(((camOn&&upper>.02)||t>nextAutoRoar)&&t-lastRoar>2200){lastRoar=t;nextAutoRoar=t+rnd(5500,9000);lion.roar=1;for(let k=0;k<3;k++)rings.push({r:20+k*30,a:1})}
   if(lion.roar>0)lion.roar-=.012;
   const hx=lion.x+lion.face*lw*.33,hy=lion.y-lh*.2;
   rings.forEach(o=>{o.r+=9;o.a-=.02;g.strokeStyle='rgba(255,220,120,'+Math.max(o.a,0)+')';g.lineWidth=6;g.beginPath();g.arc(hx,hy,o.r,0,6.28);g.stroke()});
   rings=rings.filter(o=>o.a>0);
   if(lion.roar>.3){g.save();g.font='700 '+Math.round(lw*.16)+'px "Gowun Batang",serif';g.fillStyle='#ffd54a';g.strokeStyle='#5a2a06';g.lineWidth=6;g.textAlign='center';
-    g.strokeText('어흥!',hx+lion.face*lw*.15,hy-lh*.45);g.fillText('어흥!',hx+lion.face*lw*.15,hy-lh*.45);g.restore()}
+    const rx=Math.min(Math.max(hx+lion.face*lw*.15,lw*.2),W-lw*.2),ry=Math.max(hy-lh*.45,lh*.18);g.strokeText('어흥!',rx,ry);g.fillText('어흥!',rx,ry);g.restore()}
   if(Math.random()<.3)confetti.push({x:rnd(0,W),y:-10,vy:rnd(1.5,3),vx:rnd(-1,1),c:['#ffd54a','#ff7a59','#fff','#e8a53a'][Math.floor(rnd(0,4))],a:rnd(0,6)});
   confetti.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=.1;g.fillStyle=p.c;g.save();g.translate(p.x,p.y);g.rotate(p.a);g.fillRect(-4,-2,8,4);g.restore()});
   confetti=confetti.filter(p=>p.y<H+10);
